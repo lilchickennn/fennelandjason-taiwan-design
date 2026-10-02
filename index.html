@@ -1,293 +1,516 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 台灣設計展 - 專屬觀展護照</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
-    <style>
-        body { background-color: #f8fafc; font-family: 'PingFang TC', 'Helvetica Neue', sans-serif; -webkit-tap-highlight-color: transparent; }
-        ::-webkit-scrollbar { display: none; }
-        .star { font-size: 1.5rem; color: #cbd5e1; cursor: pointer; transition: color 0.2s; }
-        .star.active { color: #fbbf24; }
-        @keyframes glow { 0% { box-shadow: 0 0 5px #f472b6; } 50% { box-shadow: 0 0 20px #f472b6, 0 0 10px #f472b6 inset; } 100% { box-shadow: 0 0 5px #f472b6; } }
-        .surprise-card { border: 2px solid #f472b6; animation: glow 2s infinite; background: linear-gradient(to right, #fff, #fff0f6); }
-        input[type="file"] { display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Fennel & Jason's 台灣設計展隨身觀展手冊</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- localForage for Photos -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'] },
+          colors: {
+            brand: { 50: '#ecfdf5', 100: '#d1fae5', 400: '#34d399', 500: '#10b981', 600: '#059669', 900: '#064e3b' },
+            accent: { teal: '#0ea5e9', cyan: '#06b6d4', coral: '#f97316' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; user-select: text; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .hero-glow { background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 165, 233, 0.08) 50%, rgba(99, 102, 241, 0.05) 100%); }
+    
+    /* 驚喜展區的專屬發光動畫 */
+    @keyframes pinkGlow { 0% { box-shadow: 0 0 5px rgba(244, 114, 182, 0.5); } 50% { box-shadow: 0 0 20px rgba(244, 114, 182, 0.8), 0 0 10px rgba(244, 114, 182, 0.4) inset; } 100% { box-shadow: 0 0 5px rgba(244, 114, 182, 0.5); } }
+    .surprise-card { border: 2px solid #f472b6 !important; animation: pinkGlow 2s infinite; background: linear-gradient(to right, #ffffff, #fff0f6); }
+    
+    input[type="file"] { display: none; }
+  </style>
 </head>
-<body class="pb-24">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans selection:bg-brand-100 selection:text-brand-900 pb-12">
 
-    <!-- 頂部進度條 -->
-    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm px-4 py-3">
-        <div class="flex justify-between items-center mb-2">
-            <h1 class="text-xl font-bold text-gray-800">✨ Fennel & Jason's 設計展觀展集章</h1>
-            <button onclick="generateReport()" class="bg-gray-800 text-white px-3 py-1.5 rounded-full text-sm font-medium active:scale-95 transition-transform">
-                產出戰報
-            </button>
+  <!-- Top App Navigation & Branding -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+          <i class="ph-bold ph-compass text-xl"></i>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">TAIWAN DESIGN EXPO</span>
+          </div>
+          <h1 class="text-base font-extrabold text-slate-900 tracking-tight leading-tight">♥️🧍‍♂️🧍‍♀️ Fennel & Jason's 設計展觀展集章</h1>
         </div>
-        <p id="progressText" class="text-xs text-gray-500 mt-1 text-right">已完成: 0 / 18</p>
-    </div>
-
-    <!-- 展區列表 -->
-    <div id="zonesContainer" class="p-4 space-y-4"></div>
-
-    <!-- 一鍵清除資料按鈕 -->
-    <div class="mt-8 mb-12 text-center">
-        <button onclick="clearAllData()" class="text-xs text-gray-400 underline hover:text-red-500 transition-colors px-4 py-2">
-            活動結束：清除所有本機照片與紀錄
+      </div>
+      
+      <!-- Action buttons -->
+      <div class="flex items-center gap-1.5">
+        <button id="exportModalBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-sm transition active:scale-95">
+          <i class="ph-bold ph-share-network text-sm"></i> <span>戰報</span>
         </button>
+        <button id="addCustomModalBtn" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition active:scale-95">
+          <i class="ph-bold ph-plus text-base"></i>
+        </button>
+      </div>
     </div>
 
-    <!-- 驚喜解鎖彈出視窗 -->
-    <div id="surpriseModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl transform scale-100 transition-all">
-            <div class="text-6xl mb-4 animate-bounce">🎇</div>
-            <h3 class="text-2xl font-bold text-pink-600 mb-2">Surprise! 叮咚！</h3>
-            <p class="text-gray-700 mb-6 font-medium leading-relaxed">
-                晚上好！有一個特別為妳準備的隱藏驚喜展區已經解鎖囉！<br>牽著我的手，一起去看光秀吧！
-            </p>
-            <button onclick="closeModal()" class="w-full bg-pink-500 text-white rounded-xl py-3 font-bold text-lg active:scale-95 transition-transform shadow-lg shadow-pink-500/30">
-                去看看 ✨
-            </button>
+    <!-- Sticky Progress Tracker -->
+    <div class="max-w-3xl mx-auto px-4 pb-2.5 pt-1">
+      <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1.5">
+        <div class="flex items-center gap-1.5">
+          <i class="ph-fill ph-check-circle text-emerald-500 text-sm"></i>
+          <span>已攻略進度：<strong id="progressCount" class="text-slate-900 text-sm font-bold">0</strong> / <span id="totalCount">18</span> 區</span>
         </div>
+        <div class="font-mono text-emerald-600 font-bold" id="progressPercent">0%</div>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden p-0.5 shadow-inner">
+        <div id="progressBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-4 space-y-4">
+    
+    <!-- Search & Filter Area -->
+    <section class="space-y-2.5 bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+      <div class="relative">
+        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+        <input id="searchInput" type="text" placeholder="搜尋展區名稱、簡介或心得關鍵字..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs md:text-sm text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition">
+        <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5">
+          <i class="ph-bold ph-x text-xs"></i>
+        </button>
+      </div>
+      <!-- Quick Filter Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-xs whitespace-nowrap">
+        <button class="filter-tab px-3 py-1.5 rounded-xl font-semibold transition active:scale-95 bg-slate-900 text-white" data-filter="all">全部 (<span id="pillAllCount">0</span>)</button>
+        <button class="filter-tab px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition active:scale-95" data-filter="visited">已踩點 🏁</button>
+        <button class="filter-tab px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition active:scale-95" data-filter="pending">待攻略 🧭</button>
+        <button class="filter-tab px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition active:scale-95" data-filter="topRated">高評分 ★4+</button>
+      </div>
+    </section>
+
+    <!-- Exhibition List Section -->
+    <div id="exhibitionList" class="space-y-3.5"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden py-14 text-center">
+      <div class="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="ph ph-magnifying-glass text-2xl"></i>
+      </div>
+      <h3 class="text-sm font-bold text-slate-700">找不到符合條件的展區</h3>
     </div>
 
-    <script>
-        const allZones = [
-            ...Array.from({length: 14}, (_, i) => ({ id: `A${i+1}`, name: `A${i+1} 展區`, loc: '青埔' })),
-            { id: 'B1', name: 'B1 展區', loc: '中壢' },
-            { id: 'B2', name: 'B2 展區', loc: '中壢' },
-            { id: 'C3', name: 'C3 橫山美術館', loc: '橫山' },
-            { id: 'C1', name: '✨ C1 光秀 (專屬驚喜)', loc: '📍 特別區', desc: '這個展區是特別為妳解鎖的，我們一起去！', isSurprise: true }
-        ];
+    <!-- Reset Data Footer Link -->
+    <div class="py-6 text-center text-xs text-slate-400">
+      <button id="resetAllDataBtn" class="hover:text-rose-600 underline underline-offset-4 transition">
+        活動結束：清除所有打卡與本機照片紀錄
+      </button>
+    </div>
+  </main>
 
-        // 驚喜時間 (記得測試完改回 2026-10-03T19:00:00+08:00)
-        const SURPRISE_TIME = new Date('2026-10-03T19:00:00+08:00').getTime();
-        let records = JSON.parse(localStorage.getItem('expoRecords')) || {};
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform translate-y-3 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs font-semibold">
+    <i class="ph-bold ph-check text-emerald-400"></i>
+    <span id="toastMsg">已自動儲存</span>
+  </div>
 
-        function init() {
-            localforage.config({ name: 'TaiwanDesignExpo', storeName: 'photos' });
-            checkSurpriseTime();
-            renderZones();
-            setInterval(checkSurpriseTime, 10000);
+  <!-- C1 驚喜解鎖 Modal (Romantic Pink Style) -->
+  <div id="surpriseModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden transition-opacity">
+    <div class="bg-white/95 w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border-4 border-pink-100 relative overflow-hidden animate-in fade-in zoom-in duration-300">
+      <div class="absolute -top-10 -right-10 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-2xl opacity-50"></div>
+      <div class="text-6xl mb-4 animate-bounce relative z-10">🎇</div>
+      <h3 class="text-2xl font-extrabold text-pink-500 mb-2 relative z-10">Surprise! 叮咚！</h3>
+      <p class="text-slate-600 mb-6 font-medium leading-relaxed relative z-10 text-sm">
+        晚上好！有一個特別為妳準備的隱藏驚喜展區已經解鎖囉！<br>牽著我的手，一起去看光秀吧！
+      </p>
+      <button onclick="closeSurprise()" class="w-full bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-xl py-3 font-bold text-base active:scale-95 transition shadow-lg shadow-pink-500/30 relative z-10">
+        去看看 ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- Export Report Modal -->
+  <div id="exportModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="ph-bold ph-paper-plane-tilt text-emerald-600"></i> 觀展心得戰報總結</h3>
+        <button id="closeExportModal" class="text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-lg"></i></button>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-4">
+        <textarea id="warReportText" readonly class="w-full h-64 p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700 focus:outline-hidden leading-relaxed resize-none"></textarea>
+      </div>
+      <div class="p-4 border-t border-slate-100 bg-white flex gap-2">
+        <button id="copyWarReportBtn" class="flex-1 py-2.5 bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition text-xs shadow-md"><i class="ph-bold ph-copy"></i> 複製戰報文字</button>
+        <button id="closeExportModalBtn2" class="px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Reset Modal -->
+  <div id="confirmModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-xs rounded-2xl p-5 shadow-2xl space-y-3 text-center">
+      <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+        <i class="ph-bold ph-warning text-xl"></i>
+      </div>
+      <h4 class="font-bold text-slate-800 text-sm">確定要清空所有紀錄與照片嗎？</h4>
+      <p class="text-xs text-slate-500 leading-relaxed">釋放手機空間，紀錄將無法復原（記得先產出戰報）</p>
+      <div class="flex gap-2 pt-2">
+        <button id="confirmResetBtn" class="flex-1 py-2 bg-rose-600 text-white font-bold rounded-xl text-xs">確定清空</button>
+        <button id="cancelResetBtn" class="flex-1 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Custom Modal (Keep minimal for brevity in script logic) -->
+  <div id="addModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b flex justify-between"><h3 class="font-bold text-sm">新增自訂展區</h3><button id="closeAddModal"><i class="ph-bold ph-x"></i></button></div>
+      <form id="addExhibitionForm" class="p-5 space-y-3 text-xs">
+        <input type="text" id="newCode" placeholder="代號 (如: B1)" required class="w-full bg-slate-50 border rounded-xl px-3 py-2">
+        <input type="text" id="newName" placeholder="展區名稱" required class="w-full bg-slate-50 border rounded-xl px-3 py-2">
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2 bg-emerald-600 text-white font-bold rounded-xl">儲存加入</button>
+          <button type="button" id="closeAddModalBtn2" class="px-4 py-2 bg-slate-100 rounded-xl">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 整合所有展區資料
+    const BASE_EXHIBITIONS = [
+      { id: 'A1', code: 'A1', name: '桃園流', desc: '桃園是一座由人集結而成的匯流之城，不僅是地理的入口，更是情感的觸點。', visited: false, rating: 0, notes: '', tags: ['行動流'] },
+      { id: 'A2', code: 'A2', name: '城市脈搏·跳動未來', desc: '化身 2040 未來城市設計師，透過沉浸式劇場、互動探索與城市共創，感受設計如何改變城市。', visited: false, rating: 0, notes: '', tags: ['願景流'] },
+      { id: 'A3', code: 'A3', name: '匯流之橋', desc: '以「匯流」為核心精神，以「彩色玻璃橋」結合「數位媒材」作為展演形式。', visited: false, rating: 0, notes: '', tags: ['玩美流'] },
+      { id: 'A4', code: 'A4', name: '日常動力學', desc: '以企業發展的動能為核心，拆解日常這場複雜細膩的動力學。', visited: false, rating: 0, notes: '', tags: ['跨界流'] },
+      { id: 'A5', code: 'A5', name: '產業新態', desc: '展現產業不斷進化的過程，陪著企業重新盤點需求、串聯資源。', visited: false, rating: 0, notes: '', tags: ['價值流'] },
+      { id: 'A6', code: 'A6', name: '桃○計畫-未來循環園', desc: '串聯在地產業、設計創新與循環實踐，描繪持續生成的未來想像。', visited: false, rating: 0, notes: '', tags: ['永續流'] },
+      { id: 'A7', code: 'A7', name: '好市有戲', desc: '走進台灣代表性商圈與市場，看見設計驅動商圈脈動，串連人、場域與服務。', visited: false, rating: 0, notes: '', tags: ['賣動流'] },
+      { id: 'A8', code: 'A8', name: '24HR 運轉全世界', desc: '盤點製造產業四大系統與七大產業面向，展現桃園成為全球供應鏈樞紐。', visited: false, rating: 0, notes: '', tags: ['智造流'] },
+      { id: 'A9', code: 'A9', name: '桃園演算室', desc: '以數據轉譯能源與碳排，讓觀眾成為演算員，重新編碼城市的淨零未來。', visited: false, rating: 0, notes: '', tags: ['行動流'] },
+      { id: 'A10', code: 'A10', name: '水之道', desc: '循著水之道，看見水如何在城市被留下、被使用，展現與水共生的城市之道。', visited: false, rating: 0, notes: '', tags: ['循環流'] },
+      { id: 'A11', code: 'A11', name: '文化 Well-being.__ 生成中', desc: '以人為本，將多元世代的生活經驗轉譯為宜居的幸福風景，成為持續生成的城市生活命題。', visited: false, rating: 0, notes: '', tags: ['眾聲流'] },
+      { id: 'A12', code: 'A12', name: '漸構桃園:造城進行式', desc: '匯聚青年設計、國際視野與城市行動，呈現青年世代以設計回應城市發展。', visited: false, rating: 0, notes: '', tags: ['新銳流'] },
+      { id: 'A13', code: 'A13', name: '#桃園POV', desc: '匯聚全球與在地設計觀點，透過不同文化背景與創意思維的交會，重新描繪桃園城市意象。', visited: false, rating: 0, notes: '', tags: ['國際流'] },
+      { id: 'A14', code: 'A14', name: '智匯生城市', desc: '將抽象的流動轉化為可被看見的城市形態，呈現多層系統運作建構的未來城市。', visited: false, rating: 0, notes: '', tags: ['智慧流'] },
+      { id: 'B1', code: 'B1', name: '匯流城市・文化共生', desc: '打破界線，從信仰、飲食與服裝交織多元族群的生命經驗，呈現共生共榮的城市。', visited: false, rating: 0, notes: '', tags: ['文化流'] },
+      { id: 'B2', code: 'B2', name: '青春匯萃', desc: '呈現桃園學生與青年設計的多元創作及國際交流成果，匯聚青春設計風景。', visited: false, rating: 0, notes: '', tags: ['青春流'] },
+      { id: 'C3', code: 'C3', name: '書寫的變奏與對話', desc: '書法與設計以文字造形為核心，在傳統與當代、手寫與科技之間展開對話。', visited: false, rating: 0, notes: '', tags: ['橫山美術館'] },
+
+      // 驚喜區 C1 
+      { id: 'C1', code: 'C1', name: '✨ C1 (城市之鏡)', desc: '我們一起去看光雕展演吧！', visited: false, rating: 0, notes: '', tags: ['特別展區！'], isSurprise: true }
+    ];
+
+    const STORAGE_KEY = 'taiwandesignexpo_2026_exhibitions';
+    const SURPRISE_TIME = new Date('2026-10-03T19:00:00+08:00').getTime();
+    
+    let exhibitions = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let toastTimer = null;
+
+    function init() {
+      localforage.config({ name: 'TaiwanDesignExpo2026', storeName: 'photos' });
+      loadData();
+      checkSurpriseTime();
+      setInterval(checkSurpriseTime, 10000);
+      setupEvents();
+    }
+
+    function checkSurpriseTime() {
+      const now = new Date().getTime();
+      if (now >= SURPRISE_TIME && !localStorage.getItem('c1Unlocked')) {
+        localStorage.setItem('c1Unlocked', 'true');
+        document.getElementById('surpriseModal').classList.remove('hidden');
+        renderExhibitions();
+      }
+    }
+    window.closeSurprise = () => {
+      document.getElementById('surpriseModal').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function loadData() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) exhibitions = JSON.parse(stored);
+        else {
+          exhibitions = JSON.parse(JSON.stringify(BASE_EXHIBITIONS));
+          saveData();
         }
+      } catch (e) { exhibitions = JSON.parse(JSON.stringify(BASE_EXHIBITIONS)); }
+      renderExhibitions();
+    }
 
-        function checkSurpriseTime() {
-            const now = new Date().getTime();
-            if (now >= SURPRISE_TIME && !localStorage.getItem('surpriseUnlocked')) {
-                localStorage.setItem('surpriseUnlocked', 'true');
-                document.getElementById('surpriseModal').classList.remove('hidden');
-                renderZones();
-            }
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(exhibitions));
+      updateProgress();
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = text;
+      toast.classList.remove('opacity-0', 'translate-y-3', 'pointer-events-none');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add('opacity-0', 'translate-y-3', 'pointer-events-none'), 1800);
+    }
+
+    function updateProgress() {
+      const isUnlocked = new Date().getTime() >= SURPRISE_TIME;
+      const visibleData = exhibitions.filter(e => !e.isSurprise || isUnlocked);
+      
+      const total = visibleData.length;
+      const visited = visibleData.filter(e => e.visited).length;
+      const percent = total > 0 ? Math.round((visited / total) * 100) : 0;
+
+      document.getElementById('progressCount').textContent = visited;
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('progressPercent').textContent = `${percent}%`;
+      document.getElementById('progressBar').style.width = `${percent}%`;
+      document.getElementById('pillAllCount').textContent = total;
+    }
+
+    function renderExhibitions() {
+      updateProgress();
+      const listEl = document.getElementById('exhibitionList');
+      const isUnlocked = new Date().getTime() >= SURPRISE_TIME;
+      const q = searchQuery.toLowerCase().trim();
+
+      let filtered = exhibitions.filter(item => {
+        if (item.isSurprise && !isUnlocked) return false;
+        if (currentFilter === 'visited' && !item.visited) return false;
+        if (currentFilter === 'pending' && item.visited) return false;
+        if (currentFilter === 'topRated' && (item.rating || 0) < 4) return false;
+        if (q) {
+          return item.code.toLowerCase().includes(q) || item.name.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q);
         }
+        return true;
+      });
 
-        function closeModal() {
-            document.getElementById('surpriseModal').classList.add('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+      filtered.sort((a, b) => (a.isSurprise ? -1 : b.isSurprise ? 1 : 0));
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '';
+        document.getElementById('emptyState').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('emptyState').classList.add('hidden');
+
+      listEl.innerHTML = filtered.map(item => {
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+          starsHtml += `<button type="button" onclick="handleSetRating('${item.id}', ${i})" class="p-1 text-base transition-transform active:scale-125 ${i <= item.rating ? 'text-amber-400' : 'text-slate-200'}"><i class="${i <= item.rating ? 'ph-fill ph-star' : 'ph-bold ph-star'}"></i></button>`;
         }
+        const isVisited = item.visited;
+        const cardStyle = item.isSurprise ? 'surprise-card' : (isVisited ? 'border-emerald-300 shadow-sm bg-emerald-50/20' : 'border-slate-200 shadow-2xs');
 
-        function renderZones() {
-            const container = document.getElementById('zonesContainer');
-            container.innerHTML = '';
-            
-            let completed = 0;
-            const now = new Date().getTime();
-            const isUnlocked = now >= SURPRISE_TIME;
-            
-            let displayZones = allZones.filter(z => !z.isSurprise || isUnlocked);
-            displayZones.sort((a, b) => (a.isSurprise ? -1 : b.isSurprise ? 1 : 0));
+        return `
+          <article class="relative bg-white rounded-2xl border transition-all duration-200 ${cardStyle} p-4">
+            <div class="flex items-start gap-3">
+              <button onclick="handleToggleVisit('${item.id}')" class="mt-0.5 min-w-[2rem] h-8 rounded-xl flex items-center justify-center transition-all ${isVisited ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-300 border border-slate-200'}">
+                <i class="ph-bold ph-check text-lg"></i>
+              </button>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-xs font-mono px-2 py-0.5 rounded-md ${item.isSurprise ? 'bg-pink-500 text-white' : (isVisited ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white')}">${item.code}</span>
+                  <h3 class="font-extrabold text-sm sm:text-base ${item.isSurprise ? 'text-pink-600' : 'text-slate-900'}">${item.name}</h3>
+                </div>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${item.desc}</p>
+              </div>
+            </div>
 
-            displayZones.forEach(zone => {
-                const data = records[zone.id] || { checked: false, rating: 0, comment: '' };
-                if (data.checked) completed++;
-                const isSurpriseCard = zone.isSurprise ? 'surprise-card' : 'border-gray-200';
-                
-                let starsHTML = '';
-                for (let i = 1; i <= 5; i++) {
-                    starsHTML += `<span class="star ${i <= data.rating ? 'active' : ''}" onclick="setRating('${zone.id}', ${i})">★</span>`;
-                }
+            <!-- Note & Photo Area (Hidden if not visited, adjust as needed) -->
+            <div class="mt-3.5 pt-3 border-t border-slate-100 bg-slate-50/60 rounded-xl p-3 ${isVisited ? 'block' : 'hidden'}">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-1.5"><span class="text-xs font-bold text-slate-600">評分:</span><div class="flex">${starsHtml}</div></div>
+              </div>
+              <textarea rows="2" placeholder="寫下專屬心得隨筆..." onchange="handleNoteInput('${item.id}', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 transition resize-none">${item.notes || ''}</textarea>
+              
+              <!-- 圖片上傳 (質感按鈕) -->
+              <div class="mt-2 flex items-center gap-3">
+                <label class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition shadow-sm">
+                  <i class="ph-bold ph-image text-emerald-600"></i> 加照片
+                  <input type="file" accept="image/*" onchange="handleImageUpload(event, '${item.id}')">
+                </label>
+                <span id="uploadMsg_${item.id}" class="text-[10px] text-emerald-500 hidden font-bold animate-pulse">處理壓縮中...</span>
+              </div>
+              
+              <!-- 圖片預覽 -->
+              <div class="mt-2 relative hidden rounded-lg overflow-hidden border border-slate-200" id="imgContainer_${item.id}">
+                <img id="preview_${item.id}" class="w-full max-h-40 object-cover" src="" alt="Photo">
+                <button onclick="deleteImage('${item.id}')" class="absolute top-1 right-1 bg-slate-900/60 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs backdrop-blur-sm"><i class="ph-bold ph-x"></i></button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
 
-                const card = document.createElement('div');
-                card.className = `bg-white rounded-2xl p-4 shadow-sm border ${isSurpriseCard} transition-all duration-300`;
-                card.innerHTML = `
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1 flex gap-3">
-                            <button onclick="toggleCheck('${zone.id}')" class="mt-1 min-w-[2rem] h-8 rounded-full border-2 flex items-center justify-center transition-colors ${data.checked ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-transparent'}">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            </button>
-                            <div class="w-full">
-                                <h2 class="text-lg font-bold text-gray-800 ${zone.isSurprise ? 'text-pink-600' : ''}">${zone.name}</h2>
-                                <span class="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded mt-1">${zone.loc}</span>
-                                ${zone.desc ? `<p class="text-sm text-pink-500 font-medium mt-1">${zone.desc}</p>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 pt-3 border-t border-gray-50 border-dashed ${data.checked ? 'block' : 'hidden'}">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm text-gray-500 font-medium">評分：</span>
-                            <div class="flex gap-1">${starsHTML}</div>
-                        </div>
-                        <textarea 
-                            onchange="saveComment('${zone.id}', this.value)"
-                            placeholder="寫下心得..." 
-                            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none h-20 mb-3"
-                        >${data.comment}</textarea>
-                        
-                        <div class="flex items-center gap-3">
-                            <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm cursor-pointer flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                加入照片
-                                <input type="file" accept="image/*" onchange="handleImageUpload(event, '${zone.id}')">
-                            </label>
-                            <span id="uploadMsg_${zone.id}" class="text-xs text-blue-500 hidden">處理中...</span>
-                        </div>
-                        <div class="mt-3 relative hidden" id="imgContainer_${zone.id}">
-                            <img id="preview_${zone.id}" class="w-full max-h-48 object-cover rounded-xl border border-gray-200" src="" alt="預覽圖">
-                            <button onclick="deleteImage('${zone.id}')" class="absolute top-2 right-2 bg-red-500/80 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm backdrop-blur-sm">✕</button>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
+      // 異步載入 localForage 圖片
+      filtered.forEach(item => {
+        localforage.getItem(`img_${item.id}`).then(base64 => {
+          if (base64) {
+            const imgEl = document.getElementById(`preview_${item.id}`);
+            const boxEl = document.getElementById(`imgContainer_${item.id}`);
+            if(imgEl && boxEl) { imgEl.src = base64; boxEl.classList.remove('hidden'); }
+          }
+        });
+      });
+    }
 
-                localforage.getItem(`img_${zone.id}`).then(imgBase64 => {
-                    if (imgBase64) {
-                        document.getElementById(`preview_${zone.id}`).src = imgBase64;
-                        document.getElementById(`imgContainer_${zone.id}`).classList.remove('hidden');
-                    }
-                }).catch(err => console.log('讀取圖片失敗', err));
-            });
+    // --- Interaction Logic ---
+    window.handleToggleVisit = (id) => {
+      const idx = exhibitions.findIndex(e => e.id === id);
+      exhibitions[idx].visited = !exhibitions[idx].visited;
+      saveData(); renderExhibitions();
+    };
 
-            document.getElementById('progressBar').style.width = `${(completed / displayZones.length) * 100}%`;
-            document.getElementById('progressText').innerText = `已攻略: ${completed} / ${displayZones.length} 區`;
-        }
+    window.handleSetRating = (id, rating) => {
+      const idx = exhibitions.findIndex(e => e.id === id);
+      exhibitions[idx].rating = rating;
+      if (rating > 0) exhibitions[idx].visited = true;
+      saveData(); renderExhibitions(); showToast(`已評分 ★ ${rating}`);
+    };
 
-        function toggleCheck(id) {
-            if (!records[id]) records[id] = { checked: false, rating: 0, comment: '' };
-            records[id].checked = !records[id].checked;
-            saveData();
-            renderZones();
-        }
+    window.handleNoteInput = (id, val) => {
+      const idx = exhibitions.findIndex(e => e.id === id);
+      exhibitions[idx].notes = val;
+      saveData(); showToast('評語已自動儲存');
+    };
 
-        function setRating(id, rating) {
-            if (!records[id]) records[id] = { checked: true, rating: 0, comment: '' };
-            records[id].rating = rating;
-            saveData();
-            renderZones();
-        }
+    // --- Image Logic (Canvas Compress + localForage) ---
+    window.handleImageUpload = async (event, id) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      document.getElementById(`uploadMsg_${id}`).classList.remove('hidden');
+      
+      try {
+        const base64Data = await compressImage(file);
+        await localforage.setItem(`img_${id}`, base64Data);
+        document.getElementById(`preview_${id}`).src = base64Data;
+        document.getElementById(`imgContainer_${id}`).classList.remove('hidden');
+      } catch (e) { alert("處理失敗！"); }
+      finally {
+        document.getElementById(`uploadMsg_${id}`).classList.add('hidden');
+        event.target.value = '';
+      }
+    };
 
-        function saveComment(id, text) {
-            if (!records[id]) records[id] = { checked: true, rating: 0, comment: '' };
-            records[id].comment = text;
-            saveData();
-        }
+    window.deleteImage = (id) => {
+      if(confirm("捨棄這張照片嗎？")) {
+        localforage.removeItem(`img_${id}`).then(() => {
+          document.getElementById(`imgContainer_${id}`).classList.add('hidden');
+        });
+      }
+    };
 
-        function saveData() {
-            localStorage.setItem('expoRecords', JSON.stringify(records));
-        }
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX = 1000;
+            let { width, height } = img;
+            if (width > height && width > MAX) { height *= MAX / width; width = MAX; }
+            else if (height > MAX) { width *= MAX / height; height = MAX; }
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.onerror = reject;
+        };
+      });
+    }
 
-        async function handleImageUpload(event, zoneId) {
-            const file = event.target.files[0];
-            if (!file) return;
+    // --- Setup Modals and Filters ---
+    function setupEvents() {
+      // 標籤篩選
+      document.querySelectorAll('.filter-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-tab').forEach(b => {
+            b.classList.remove('bg-slate-900', 'text-white');
+            b.classList.add('bg-slate-100', 'text-slate-600');
+          });
+          btn.classList.add('bg-slate-900', 'text-white');
+          currentFilter = btn.dataset.filter;
+          renderExhibitions();
+        });
+      });
 
-            const msgEl = document.getElementById(`uploadMsg_${zoneId}`);
-            msgEl.classList.remove('hidden');
+      // 搜尋
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        document.getElementById('clearSearchBtn').classList.toggle('hidden', !searchQuery);
+        renderExhibitions();
+      });
+      document.getElementById('clearSearchBtn').addEventListener('click', () => {
+        document.getElementById('searchInput').value = searchQuery = '';
+        document.getElementById('clearSearchBtn').classList.add('hidden');
+        renderExhibitions();
+      });
 
-            try {
-                const base64Data = await compressImage(file);
-                await localforage.setItem(`img_${zoneId}`, base64Data);
-                document.getElementById(`preview_${zoneId}`).src = base64Data;
-                document.getElementById(`imgContainer_${zoneId}`).classList.remove('hidden');
-            } catch (error) {
-                alert("照片處理失敗，請換一張試試！");
-            } finally {
-                msgEl.classList.add('hidden');
-                event.target.value = ''; 
-            }
-        }
+      // 戰報
+      const exportModal = document.getElementById('exportModal');
+      document.getElementById('exportModalBtn').addEventListener('click', () => {
+        let report = `【2026 台灣設計展 ‧ 觀展戰報】\n\n`;
+        exhibitions.filter(e => e.visited).forEach(e => {
+          report += `📍 [${e.code}] ${e.name} ${e.rating ? '★'.repeat(e.rating) : ''}\n`;
+          if(e.notes) report += `💬 ${e.notes}\n`;
+        });
+        document.getElementById('warReportText').value = report || '尚未打卡！';
+        exportModal.classList.remove('hidden');
+      });
+      document.getElementById('closeExportModal').onclick = document.getElementById('closeExportModalBtn2').onclick = () => exportModal.classList.add('hidden');
+      document.getElementById('copyWarReportBtn').onclick = () => {
+        const ta = document.getElementById('warReportText');
+        ta.select(); document.execCommand('copy'); showToast('已複製戰報！');
+      };
 
-        function deleteImage(zoneId) {
-            if(confirm("確定要刪除這張照片嗎？")) {
-                localforage.removeItem(`img_${zoneId}`).then(() => {
-                    document.getElementById(`imgContainer_${zoneId}`).classList.add('hidden');
-                    document.getElementById(`preview_${zoneId}`).src = '';
-                });
-            }
-        }
+      // 新增自訂
+      const addModal = document.getElementById('addModal');
+      document.getElementById('addCustomModalBtn').onclick = () => addModal.classList.remove('hidden');
+      document.getElementById('closeAddModal').onclick = document.getElementById('closeAddModalBtn2').onclick = () => addModal.classList.add('hidden');
+      document.getElementById('addExhibitionForm').onsubmit = (e) => {
+        e.preventDefault();
+        exhibitions.push({
+          id: 'custom-' + Date.now(),
+          code: document.getElementById('newCode').value,
+          name: document.getElementById('newName').value,
+          desc: '自訂', visited: false, rating: 0, notes: '', tags: ['自訂']
+        });
+        saveData(); renderExhibitions(); addModal.classList.add('hidden'); e.target.reset();
+      };
 
-        function compressImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 1000;
-                        const MAX_HEIGHT = 1000;
-                        let width = img.width;
-                        let height = img.height;
+      // 終極清除
+      const confirmModal = document.getElementById('confirmModal');
+      document.getElementById('resetAllDataBtn').onclick = () => confirmModal.classList.remove('hidden');
+      document.getElementById('cancelResetBtn').onclick = () => confirmModal.classList.add('hidden');
+      document.getElementById('confirmResetBtn').onclick = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('c1Unlocked');
+        localforage.clear().then(() => location.reload());
+      };
+    }
 
-                        if (width > height) {
-                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                        } else {
-                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7)); 
-                    };
-                    img.onerror = (err) => reject(err);
-                };
-                reader.onerror = (err) => reject(err);
-            });
-        }
-
-        function generateReport() {
-            let report = "【2026 台灣設計展 - 我們的觀展戰報】\n\n";
-            let hasChecked = false;
-            allZones.forEach(z => {
-                const data = records[z.id];
-                if (data && data.checked) {
-                    hasChecked = true;
-                    report += `📍 ${z.name}\n`;
-                    if (data.rating > 0) report += `評分: ${'★'.repeat(data.rating)}\n`;
-                    if (data.comment) report += `心得: ${data.comment}\n`;
-                    report += `\n`;
-                }
-            });
-            if (!hasChecked) { alert("還沒有踩點紀錄喔！快去逛逛吧！"); return; }
-            navigator.clipboard.writeText(report).then(() => {
-                alert("✨ 戰報已自動複製！快去貼給朋友或發 IG 限動吧！\n\n預覽：\n" + report);
-            });
-        }
-
-        // --- 清除本機所有資料的功能 ---
-        function clearAllData() {
-            if(confirm("確定要清除所有打卡紀錄與照片嗎？\n(這會釋放手機空間，但紀錄無法復原喔！記得先產出戰報)")) {
-                // 1. 清除文字與打卡紀錄
-                localStorage.removeItem('expoRecords');
-                localStorage.removeItem('surpriseUnlocked');
-                
-                // 2. 清除所有儲存的照片
-                localforage.clear().then(function() {
-                    alert("✅ 所有紀錄與照片已成功清除！");
-                    location.reload(); // 重新載入網頁恢復初始狀態
-                }).catch(function(err) {
-                    alert('清除照片失敗，請再試一次');
-                    console.log('Error:', err);
-                });
-            }
-        }
-
-        init();
-    </script>
+    // Start App
+    init();
+  </script>
 </body>
 </html>
