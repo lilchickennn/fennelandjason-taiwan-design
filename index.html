@@ -16,7 +16,13 @@
       theme: {
         extend: {
           fontFamily: { sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'] },
-          colors: { brand: { 50: '#ecfdf5', 100: '#d1fae5', 400: '#34d399', 500: '#10b981', 600: '#059669', 900: '#064e3b' } }
+          colors: { 
+            brand: { 50: '#ecfdf5', 100: '#d1fae5', 400: '#34d399', 500: '#10b981', 600: '#059669', 900: '#064e3b' },
+            // 定義官方專屬色系
+            zoneA: '#e11d48', // 官方洋紅色 (Rose-600)
+            zoneB: '#2563eb', // 官方藍色 (Blue-600)
+            zoneC: '#fb7185', // 官方淺桃色 (Rose-400)
+          }
         }
       }
     }
@@ -77,6 +83,7 @@
       </div>
     </section>
 
+    <!-- 展區列表容器 -->
     <div id="exhibitionList" class="space-y-3.5"></div>
     <div id="emptyState" class="hidden py-14 text-center"><h3 class="text-sm font-bold text-slate-400">找不到展區</h3></div>
 
@@ -133,7 +140,7 @@
     </div>
   </div>
 
-  <!-- 長圖產出後的展示 Modal (讓使用者長按存檔) -->
+  <!-- 長圖產出後的展示 Modal -->
   <div id="finalImageModal" class="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center p-4 hidden">
     <p class="text-emerald-400 mb-4 text-sm font-bold flex items-center gap-2 animate-bounce">
       <i class="ph-fill ph-check-circle text-lg"></i> 產生成功！請長按圖片選擇「儲存影像」
@@ -188,6 +195,14 @@
     let exhibitions = [];
     let currentFilter = 'all';
     let toastTimer = null;
+
+    // 🎨 判定展區顏色的輔助函數
+    function getZoneColor(code) {
+      if (code.startsWith('A')) return { bg: 'bg-rose-600', text: 'text-rose-600', border: 'border-rose-200', activeBg: 'bg-rose-50/40' }; // 官方洋紅
+      if (code.startsWith('B')) return { bg: 'bg-blue-600', text: 'text-blue-600', border: 'border-blue-200', activeBg: 'bg-blue-50/40' }; // 官方藍
+      if (code.startsWith('C')) return { bg: 'bg-rose-400', text: 'text-rose-400', border: 'border-rose-200', activeBg: 'bg-rose-50/40' }; // 官方淺桃
+      return { bg: 'bg-slate-700', text: 'text-slate-700', border: 'border-slate-200', activeBg: 'bg-slate-50' };
+    }
 
     function init() {
       localforage.config({ name: 'TaiwanDesignExpo2026', storeName: 'photos' });
@@ -258,29 +273,36 @@
       document.getElementById('emptyState').classList.add('hidden');
 
       listEl.innerHTML = filtered.map(item => {
+        const isVisited = item.visited;
+        const color = getZoneColor(item.code);
+        
         let starsHtml = '';
         for (let i = 1; i <= 5; i++) {
           starsHtml += `<button type="button" onclick="handleSetRating('${item.id}', ${i})" class="p-1 text-base transition-transform active:scale-125 ${i <= item.rating ? 'text-amber-400' : 'text-slate-200'}"><i class="${i <= item.rating ? 'ph-fill ph-star' : 'ph-bold ph-star'}"></i></button>`;
         }
-        const isVisited = item.visited;
-        const cardStyle = item.isSurprise ? 'surprise-card' : (isVisited ? 'border-emerald-300 shadow-sm bg-emerald-50/20' : 'border-slate-200 shadow-2xs');
+        
+        // 未踩點時是低調的灰色，踩點後亮起專屬色彩
+        const cardStyle = item.isSurprise ? 'surprise-card' : (isVisited ? `${color.border} shadow-sm ${color.activeBg}` : 'border-slate-200 shadow-2xs bg-white');
+        const badgeStyle = item.isSurprise ? 'bg-gradient-to-r from-pink-400 to-rose-400 text-white' : (isVisited ? `${color.bg} text-white` : 'bg-slate-200 text-slate-500');
+        const checkBtnStyle = isVisited ? `${color.bg} text-white shadow-md border-transparent` : 'bg-slate-50 text-slate-300 border-slate-200 hover:bg-slate-100';
 
         return `
-          <article class="relative bg-white rounded-2xl border transition-all duration-200 ${cardStyle} p-4">
+          <article class="relative rounded-2xl border transition-all duration-300 ${cardStyle} p-4">
             <div class="flex items-start gap-3">
-              <button onclick="handleToggleVisit('${item.id}')" class="mt-0.5 min-w-[2rem] h-8 rounded-xl flex items-center justify-center transition-all ${isVisited ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-300 border border-slate-200'}">
+              <button onclick="handleToggleVisit('${item.id}')" class="mt-0.5 min-w-[2rem] h-8 rounded-xl flex items-center justify-center transition-all border-2 ${checkBtnStyle}">
                 <i class="ph-bold ph-check text-lg"></i>
               </button>
               <div class="flex-1">
                 <div class="flex items-center gap-2">
-                  <span class="font-black text-xs font-mono px-2 py-0.5 rounded-md ${item.isSurprise ? 'bg-pink-500 text-white' : (isVisited ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white')}">${item.code}</span>
+                  <!-- 為了避免 html2canvas 的跑版，這裡也統一改用絕對行高 inline-block -->
+                  <span class="${badgeStyle} rounded text-[11px] font-bold font-mono tracking-wider inline-block text-center transition-colors" style="padding: 3px 6px; line-height: 1.2; vertical-align: middle;">${item.code}</span>
                   <h3 class="font-extrabold text-sm sm:text-base ${item.isSurprise ? 'text-pink-600' : 'text-slate-900'}">${item.name}</h3>
                 </div>
                 <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${item.desc}</p>
               </div>
             </div>
 
-            <div class="mt-3.5 pt-3 border-t border-slate-100 bg-slate-50/60 rounded-xl p-3 ${isVisited ? 'block' : 'hidden'}">
+            <div class="mt-3.5 pt-3 border-t border-slate-100 bg-white/60 rounded-xl p-3 ${isVisited ? 'block' : 'hidden'}">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-1.5"><span class="text-xs font-bold text-slate-600">評分:</span><div class="flex">${starsHtml}</div></div>
               </div>
@@ -303,6 +325,7 @@
         `;
       }).join('');
 
+      // 非同步讀取圖片
       filtered.forEach(item => {
         localforage.getItem(`img_${item.id}`).then(base64 => {
           if (base64) {
@@ -372,7 +395,7 @@
             else if (height > MAX) { width *= MAX / height; height = MAX; }
             canvas.width = width; canvas.height = height;
             canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
           };
           img.onerror = reject;
         };
@@ -393,7 +416,7 @@
         });
       });
 
-      // 【修正點 1】為截圖專屬的容器設定固定的樣式，解決排版擠壓跑掉的問題
+      // 產生圖文回憶錄
       const exportModal = document.getElementById('exportModal');
       const visualReport = document.getElementById('visualReport');
       
@@ -411,10 +434,10 @@
         document.getElementById('downloadVisualReportBtn').classList.remove('hidden');
         
         let html = `
-          <!-- 強制指定寬度與內邊距給 html2canvas，確保排版方正 -->
           <div id="captureContainer" class="bg-white" style="width: 100%; max-width: 600px; margin: 0 auto; padding: 24px;">
             <div class="text-center mb-6">
               <h2 class="text-2xl font-extrabold text-slate-800 tracking-wider">2026 台灣設計展</h2>
+              <!-- 👇 這裡的標題可以自己改成你們的名字喔！ -->
               <p class="text-sm text-emerald-600 font-bold mt-1">✨ 🧍‍♂️♥️🧍‍♀️ Fennel & Jason 的觀展回憶錄 ✨</p>
               <p class="text-xs text-slate-400 mt-2 font-mono">${new Date().toLocaleDateString('zh-TW')}</p>
               <div class="mt-3 w-12 h-1 bg-emerald-400 mx-auto rounded-full"></div>
@@ -424,20 +447,23 @@
 
         for (const e of visited) {
           const stars = e.rating > 0 ? '★'.repeat(e.rating) : '';
+          const color = getZoneColor(e.code);
+          const reportBadgeColor = e.isSurprise ? 'background: linear-gradient(to right, #f472b6, #fb7185);' : `background-color: ${color.bg.replace('bg-', '')};`;
+
           let imgHtml = '';
           try {
             const base64 = await localforage.getItem(`img_${e.id}`);
             if (base64) {
-              // 【修正點 2】拿掉 max-height 與 object-cover，改用 h-auto 保持原始比例不壓扁
               imgHtml = `<img src="${base64}" class="w-full h-auto rounded-xl mt-3 shadow-sm border border-slate-200" style="display: block;">`;
             }
           } catch(err) {}
 
+          // 核心修復區：完全拔除 Flexbox，改用 inline-block 與絕對行高，終結 html2canvas 跑版惡夢
           html += `
             <div class="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
-              <div class="flex items-center gap-2 mb-1.5">
-                <span class="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider">${e.code}</span>
-                <h3 class="font-bold text-slate-800 text-base">${e.name}</h3>
+              <div style="margin-bottom: 6px;">
+                <span class="${color.bg} text-white rounded font-mono font-bold text-center" style="display: inline-block; padding: 4px 6px; font-size: 11px; line-height: 1; vertical-align: middle;">${e.code}</span>
+                <h3 class="font-bold text-slate-800 text-base" style="display: inline-block; margin-left: 6px; vertical-align: middle;">${e.name}</h3>
               </div>
               ${stars ? `<div class="text-amber-400 text-sm mb-2 tracking-widest">${stars}</div>` : ''}
               ${e.notes ? `<div class="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg leading-relaxed border border-slate-200 mt-2">${e.notes}</div>` : ''}
@@ -457,9 +483,7 @@
         loadingEl.classList.remove('hidden');
 
         try {
-          // 直接抓取我們嚴格設定過樣式的內部容器來截圖
           const captureContainer = document.getElementById('captureContainer');
-          
           const canvas = await html2canvas(captureContainer, { 
             scale: 2, 
             useCORS: true, 
