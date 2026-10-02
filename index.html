@@ -5,15 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Fennel & Jason's 台灣設計展隨身觀展手冊</title>
   
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-  <!-- localForage for Photos (IndexedDB) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
-  <!-- html2canvas for Image Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <script>
@@ -21,9 +16,7 @@
       theme: {
         extend: {
           fontFamily: { sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'] },
-          colors: {
-            brand: { 50: '#ecfdf5', 100: '#d1fae5', 400: '#34d399', 500: '#10b981', 600: '#059669', 900: '#064e3b' }
-          }
+          colors: { brand: { 50: '#ecfdf5', 100: '#d1fae5', 400: '#34d399', 500: '#10b981', 600: '#059669', 900: '#064e3b' } }
         }
       }
     }
@@ -33,7 +26,6 @@
     .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     
-    /* 驚喜展區的專屬發光動畫 */
     @keyframes pinkGlow { 0% { box-shadow: 0 0 5px rgba(244, 114, 182, 0.5); } 50% { box-shadow: 0 0 20px rgba(244, 114, 182, 0.8), 0 0 10px rgba(244, 114, 182, 0.4) inset; } 100% { box-shadow: 0 0 5px rgba(244, 114, 182, 0.5); } }
     .surprise-card { border: 2px solid #f472b6 !important; animation: pinkGlow 2s infinite; background: linear-gradient(to right, #ffffff, #fff0f6); }
     
@@ -42,7 +34,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans pb-12">
 
-  <!-- Top App Navigation -->
   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all">
     <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
@@ -63,7 +54,6 @@
       </div>
     </div>
 
-    <!-- Sticky Progress Tracker -->
     <div class="max-w-3xl mx-auto px-4 pb-2.5 pt-1">
       <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1.5">
         <div class="flex items-center gap-1.5">
@@ -79,7 +69,6 @@
   </header>
 
   <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-4 space-y-4">
-    <!-- Filter Area -->
     <section class="space-y-2.5 bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
       <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-xs whitespace-nowrap">
         <button class="filter-tab px-3 py-1.5 rounded-xl font-semibold transition active:scale-95 bg-slate-900 text-white" data-filter="all">全部 (<span id="pillAllCount">0</span>)</button>
@@ -88,7 +77,6 @@
       </div>
     </section>
 
-    <!-- Exhibition List -->
     <div id="exhibitionList" class="space-y-3.5"></div>
     <div id="emptyState" class="hidden py-14 text-center"><h3 class="text-sm font-bold text-slate-400">找不到展區</h3></div>
 
@@ -103,14 +91,14 @@
     <i class="ph-bold ph-check text-emerald-400"></i><span id="toastMsg">已自動儲存</span>
   </div>
 
-  <!-- C1 驚喜解鎖 Modal (Romantic Pink Style) -->
+  <!-- C1 驚喜解鎖 Modal -->
   <div id="surpriseModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden transition-opacity">
     <div class="bg-white/95 w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border-4 border-pink-100 relative overflow-hidden">
       <div class="absolute -top-10 -right-10 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-2xl opacity-50"></div>
       <div class="text-6xl mb-4 animate-bounce relative z-10">🎇</div>
       <h3 class="text-2xl font-extrabold text-pink-500 mb-2 relative z-10">Surprise! 叮咚！</h3>
       <p class="text-slate-600 mb-6 font-medium leading-relaxed relative z-10 text-sm">
-        HiHi！有一個特別展區已經解鎖囉！<br>我們一起去看光雕展演吧！
+        HiHi！有一個特別展區已經解鎖囉！<br>我們一起去看看吧！
       </p>
       <button onclick="closeSurprise()" class="w-full bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-xl py-3 font-bold text-base active:scale-95 transition shadow-lg relative z-10">
         去看看 ✨
@@ -118,7 +106,7 @@
     </div>
   </div>
 
-  <!-- 【全新升級】圖文回憶錄 Export Modal -->
+  <!-- 圖文回憶錄 Export Modal -->
   <div id="exportModal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
     <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden relative">
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -126,12 +114,10 @@
         <button id="closeExportModal" class="text-slate-400"><i class="ph-bold ph-x text-lg"></i></button>
       </div>
       
-      <!-- 截圖區域 -->
-      <div class="p-0 overflow-y-auto bg-slate-100 flex-1 relative">
-        <div id="visualReport" class="bg-white p-6 m-4 sm:m-6 rounded-2xl shadow-sm border border-slate-200">
+      <div class="p-0 overflow-y-auto bg-slate-200 flex-1 relative">
+        <div id="visualReport" class="w-full">
           <!-- 內容由 JS 自動產生 -->
         </div>
-        <!-- 截圖 Loading 畫面 -->
         <div id="captureLoading" class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center hidden z-10">
           <i class="ph-bold ph-spinner-gap text-4xl text-emerald-500 animate-spin mb-2"></i>
           <span class="text-emerald-700 font-bold text-sm">正在產生高畫質長圖...</span>
@@ -147,7 +133,7 @@
     </div>
   </div>
 
-  <!-- 【全新升級】長圖產出後的展示 Modal (讓使用者長按存檔) -->
+  <!-- 長圖產出後的展示 Modal (讓使用者長按存檔) -->
   <div id="finalImageModal" class="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center p-4 hidden">
     <p class="text-emerald-400 mb-4 text-sm font-bold flex items-center gap-2 animate-bounce">
       <i class="ph-fill ph-check-circle text-lg"></i> 產生成功！請長按圖片選擇「儲存影像」
@@ -172,7 +158,6 @@
   </div>
 
   <script>
-    // 官方正確展區資料庫
     const BASE_EXHIBITIONS = [
       { id: 'A1', code: 'A1', name: '桃園流', desc: '桃園是一座由人集結而成的匯流之城，不僅是地理的入口，更是情感的觸點。', visited: false, rating: 0, notes: '', tags: ['行動流'] },
       { id: 'A2', code: 'A2', name: '城市脈搏·跳動未來', desc: '化身 2040 未來城市設計師，透過沉浸式劇場、互動探索與城市共創，感受設計如何改變城市。', visited: false, rating: 0, notes: '', tags: ['願景流'] },
@@ -194,13 +179,11 @@
       { id: 'C3', code: 'C3', name: '書寫的變奏與對話', desc: '書法與設計以文字造形為核心，在傳統與當代、手寫與科技之間展開對話。', visited: false, rating: 0, notes: '', tags: ['橫山美術館'] },
       { id: 'C4', code: 'C4', name: '原生力', desc: '引領觀眾循著族人的生活與記憶，看見原住民族文化在當代持續發光的樣貌。', visited: false, rating: 0, notes: '', tags: ['泰雅文化館'] },
       { id: 'C5', code: 'C5', name: '山城的客廳', desc: '透過三種當代的生活情境與風格，看見大溪工藝如何轉化新生、走進家庭。', visited: false, rating: 0, notes: '', tags: ['大溪木藝'] },
-      // 驚喜區 C1
-      { id: 'C1', code: 'C1', name: '✨ C1 (城市之鏡)', desc: '我們一起去看光雕展演吧！', visited: false, rating: 0, notes: '', tags: ['專屬驚喜'], isSurprise: true }
+      { id: 'C1', code: 'C1', name: '✨ C1 (城市之鏡)', desc: '我們一起去看光雕展演吧！', visited: false, rating: 0, notes: '', tags: ['桃園市立美術館戶外空間'], isSurprise: true }
     ];
 
     const STORAGE_KEY = 'taiwandesignexpo_2026_exhibitions';
-    // 驚喜時間 (記得測試完改回 2026-10-03T19:00:00+08:00)
-    const SURPRISE_TIME = new Date('2026-10-02T23:10:00+08:00').getTime();
+    const SURPRISE_TIME = new Date('2026-10-03T19:00:00+08:00').getTime();
     
     let exhibitions = [];
     let currentFilter = 'all';
@@ -410,12 +393,12 @@
         });
       });
 
-      // 【全新】產生圖文回憶錄邏輯
+      // 【修正點 1】為截圖專屬的容器設定固定的樣式，解決排版擠壓跑掉的問題
       const exportModal = document.getElementById('exportModal');
       const visualReport = document.getElementById('visualReport');
       
       document.getElementById('exportModalBtn').addEventListener('click', async () => {
-        visualReport.innerHTML = '<div class="text-center text-slate-500 py-10 animate-pulse font-bold">翻閱相片與紀錄中...</div>';
+        visualReport.innerHTML = '<div class="text-center text-slate-500 py-10 font-bold animate-pulse">翻閱相片與紀錄中...</div>';
         exportModal.classList.remove('hidden');
 
         const visited = exhibitions.filter(e => e.visited);
@@ -428,13 +411,15 @@
         document.getElementById('downloadVisualReportBtn').classList.remove('hidden');
         
         let html = `
-          <div class="text-center mb-6">
-            <h2 class="text-xl font-extrabold text-slate-800 tracking-wider">2026 台灣設計展</h2>
-            <p class="text-sm text-emerald-600 font-bold mt-1">✨ 我們的觀展回憶錄 ✨</p>
-            <p class="text-xs text-slate-400 mt-2 font-mono">${new Date().toLocaleDateString('zh-TW')}</p>
-            <div class="mt-3 w-12 h-1 bg-emerald-400 mx-auto rounded-full"></div>
-          </div>
-          <div class="space-y-6">
+          <!-- 強制指定寬度與內邊距給 html2canvas，確保排版方正 -->
+          <div id="captureContainer" class="bg-white" style="width: 100%; max-width: 600px; margin: 0 auto; padding: 24px;">
+            <div class="text-center mb-6">
+              <h2 class="text-2xl font-extrabold text-slate-800 tracking-wider">2026 台灣設計展</h2>
+              <p class="text-sm text-emerald-600 font-bold mt-1">✨ 🧍‍♂️♥️🧍‍♀️ Fennel & Jason 的觀展回憶錄 ✨</p>
+              <p class="text-xs text-slate-400 mt-2 font-mono">${new Date().toLocaleDateString('zh-TW')}</p>
+              <div class="mt-3 w-12 h-1 bg-emerald-400 mx-auto rounded-full"></div>
+            </div>
+            <div class="space-y-6">
         `;
 
         for (const e of visited) {
@@ -443,7 +428,8 @@
           try {
             const base64 = await localforage.getItem(`img_${e.id}`);
             if (base64) {
-              imgHtml = `<img src="${base64}" class="w-full rounded-xl mt-3 object-cover shadow-sm border border-slate-100" style="max-height: 250px;">`;
+              // 【修正點 2】拿掉 max-height 與 object-cover，改用 h-auto 保持原始比例不壓扁
+              imgHtml = `<img src="${base64}" class="w-full h-auto rounded-xl mt-3 shadow-sm border border-slate-200" style="display: block;">`;
             }
           } catch(err) {}
 
@@ -451,43 +437,38 @@
             <div class="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
               <div class="flex items-center gap-2 mb-1.5">
                 <span class="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider">${e.code}</span>
-                <h3 class="font-bold text-slate-800 text-sm">${e.name}</h3>
+                <h3 class="font-bold text-slate-800 text-base">${e.name}</h3>
               </div>
               ${stars ? `<div class="text-amber-400 text-sm mb-2 tracking-widest">${stars}</div>` : ''}
-              ${e.notes ? `<p class="text-xs text-slate-600 bg-slate-50/80 p-3 rounded-lg leading-relaxed border border-slate-100">${e.notes}</p>` : ''}
+              ${e.notes ? `<div class="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg leading-relaxed border border-slate-200 mt-2">${e.notes}</div>` : ''}
               ${imgHtml}
             </div>
           `;
         }
         
-        html += `</div><div class="text-center mt-8 text-[10px] text-slate-300 font-mono">Created by 我們的觀展小幫手</div>`;
+        html += `</div><div class="text-center mt-8 text-[10px] text-slate-400 font-mono">Created by 我們的觀展小幫手</div></div>`;
         visualReport.innerHTML = html;
       });
 
       document.getElementById('closeExportModal').onclick = document.getElementById('closeExportModalBtn2').onclick = () => exportModal.classList.add('hidden');
       
-      // 【全新】匯出長圖功能 (使用 html2canvas)
       document.getElementById('downloadVisualReportBtn').addEventListener('click', async () => {
         const loadingEl = document.getElementById('captureLoading');
         loadingEl.classList.remove('hidden');
 
         try {
-          // 短暫去除圓角與陰影，讓產生的圖檔更方正乾淨
-          const reportEl = document.getElementById('visualReport');
-          const originalClasses = reportEl.className;
-          reportEl.className = 'bg-white p-6'; 
-
-          const canvas = await html2canvas(reportEl, { 
-            scale: 2, // 2倍高畫質
+          // 直接抓取我們嚴格設定過樣式的內部容器來截圖
+          const captureContainer = document.getElementById('captureContainer');
+          
+          const canvas = await html2canvas(captureContainer, { 
+            scale: 2, 
             useCORS: true, 
-            backgroundColor: '#ffffff' 
+            backgroundColor: '#ffffff',
+            logging: false
           });
           
-          reportEl.className = originalClasses; // 恢復樣式
-
-          const imgData = canvas.toDataURL('image/jpeg', 0.9); // 轉換為 JPEG
+          const imgData = canvas.toDataURL('image/jpeg', 0.85); 
           
-          // 顯示成功後的 Modal 讓使用者長按存檔
           document.getElementById('finalGeneratedImage').src = imgData;
           document.getElementById('finalImageModal').classList.remove('hidden');
           exportModal.classList.add('hidden');
