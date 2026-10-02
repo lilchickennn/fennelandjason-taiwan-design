@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 台灣設計展 - 專屬觀展護照</title>
+    <!-- 使用 Tailwind CSS 快速排版 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f8fafc; font-family: 'PingFang TC', 'Helvetica Neue', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* 隱藏卷軸但保留滑動 */
+        ::-webkit-scrollbar { display: none; }
+        .star { font-size: 1.5rem; color: #cbd5e1; cursor: pointer; transition: color 0.2s; }
+        .star.active { color: #fbbf24; }
+        /* 驚喜展區的專屬發光動畫 */
+        @keyframes glow { 0% { box-shadow: 0 0 5px #f472b6; } 50% { box-shadow: 0 0 20px #f472b6, 0 0 10px #f472b6 inset; } 100% { box-shadow: 0 0 5px #f472b6; } }
+        .surprise-card { border: 2px solid #f472b6; animation: glow 2s infinite; background: linear-gradient(to right, #fff, #fff0f6); }
+    </style>
+</head>
+<body class="pb-24">
+
+    <!-- 頂部導覽列與進度 -->
+    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm px-4 py-3">
+        <div class="flex justify-between items-center mb-2">
+            <h1 class="text-xl font-bold text-gray-800">✨ 我們的設計展護照</h1>
+            <button onclick="generateReport()" class="bg-gray-800 text-white px-3 py-1.5 rounded-full text-sm font-medium active:scale-95 transition-transform">
+                產出戰報
+            </button>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="text-xs text-gray-500 mt-1 text-right">已完成: 0 / 18</p>
+    </div>
+
+    <!-- 展區列表容器 -->
+    <div id="zonesContainer" class="p-4 space-y-4"></div>
+
+    <!-- 驚喜解鎖彈出視窗 (預設隱藏) -->
+    <div id="surpriseModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl transform scale-100 transition-all">
+            <div class="text-6xl mb-4 animate-bounce">🎇</div>
+            <h3 class="text-2xl font-bold text-pink-600 mb-2">Surprise! 叮咚！</h3>
+            <p class="text-gray-700 mb-6 font-medium leading-relaxed">
+                晚上好！有一個特別為妳準備的隱藏驚喜展區已經解鎖囉！<br>牽著我的手，一起去看光秀吧！
+            </p>
+            <button onclick="closeModal()" class="w-full bg-pink-500 text-white rounded-xl py-3 font-bold text-lg active:scale-95 transition-transform shadow-lg shadow-pink-500/30">
+                去看看 ✨
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 展區資料庫 ---
+        const allZones = [
+            // 青埔區 A1-A14
+            ...Array.from({length: 14}, (_, i) => ({ id: `A${i+1}`, name: `A${i+1} 展區`, loc: '青埔' })),
+            // 中壢區 B1-B2
+            { id: 'B1', name: 'B1 展區', loc: '中壢' },
+            { id: 'B2', name: 'B2 展區', loc: '中壢' },
+            // 橫山
+            { id: 'C3', name: 'C3 橫山美術館', loc: '橫山' },
+            // 驚喜區 C1 (預設為驚喜，後續靠時間判斷是否顯示)
+            { 
+                id: 'C1', 
+                name: '✨ C1 光秀 (專屬驚喜)', 
+                loc: '📍 特別區', 
+                desc: '這個展區是特別為妳解鎖的，我們一起去！', 
+                isSurprise: true 
+            }
+        ];
+
+        // --- 2. 驚喜時間設定 ---
+        // 設定解鎖時間：2026年10月3日 19:00:00 (台灣時間)
+        const SURPRISE_TIME = new Date('2026-10-03T19:00:00+08:00').getTime();
+
+        // 讀取本地紀錄
+        let records = JSON.parse(localStorage.getItem('expoRecords')) || {};
+
+        // 初始化
+        function init() {
+            checkSurpriseTime(); // 先檢查時間
+            renderZones();
+            
+            // 每 10 秒在背景偷偷檢查一次時間 (以防網頁一直開著)
+            setInterval(checkSurpriseTime, 10000);
+        }
+
+        // 檢查是否達到驚喜時間
+        function checkSurpriseTime() {
+            const now = new Date().getTime();
+            if (now >= SURPRISE_TIME) {
+                // 如果過了時間，且還沒顯示過通知
+                if (!localStorage.getItem('surpriseUnlocked')) {
+                    localStorage.setItem('surpriseUnlocked', 'true');
+                    document.getElementById('surpriseModal').classList.remove('hidden');
+                    renderZones(); // 重新渲染列表，顯示 C1
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('surpriseModal').classList.add('hidden');
+            // 關閉視窗後自動滑動到最頂部看驚喜
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 渲染畫面
+        function renderZones() {
+            const container = document.getElementById('zonesContainer');
+            container.innerHTML = '';
+            
+            let completed = 0;
+            const now = new Date().getTime();
+            
+            // 如果超過解鎖時間，就把 C1 獨立拉到最上面
+            const isUnlocked = now >= SURPRISE_TIME;
+            
+            let displayZones = allZones.filter(z => {
+                if (z.isSurprise && !isUnlocked) return false; // 時間未到，隱藏 C1
+                return true;
+            });
+
+            // 排序：如果有驚喜區且解鎖了，排在第一個
+            displayZones.sort((a, b) => {
+                if (a.isSurprise) return -1;
+                if (b.isSurprise) return 1;
+                return 0;
+            });
+
+            displayZones.forEach(zone => {
+                const data = records[zone.id] || { checked: false, rating: 0, comment: '' };
+                if (data.checked) completed++;
+
+                const isSurpriseCard = zone.isSurprise ? 'surprise-card' : 'border-gray-200';
+                
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl p-4 shadow-sm border ${isSurpriseCard} transition-all duration-300`;
+                
+                // 產生星星 HTML
+                let starsHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    starsHTML += `<span class="star ${i <= data.rating ? 'active' : ''}" onclick="setRating('${zone.id}', ${i})">★</span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1 flex gap-3">
+                            <!-- 打卡按鈕 -->
+                            <button onclick="toggleCheck('${zone.id}')" class="mt-1 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${data.checked ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-transparent'}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </button>
+                            <div>
+                                <h2 class="text-lg font-bold text-gray-800 ${zone.isSurprise ? 'text-pink-600' : ''}">${zone.name}</h2>
+                                <span class="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded mt-1">${zone.loc}</span>
+                                ${zone.desc ? `<p class="text-sm text-pink-500 font-medium mt-1">${zone.desc}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 評分與留言區 -->
+                    <div class="mt-4 pt-3 border-t border-gray-50 border-dashed ${data.checked ? 'block' : 'hidden'}">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-500 font-medium">評分：</span>
+                            <div class="flex gap-1">${starsHTML}</div>
+                        </div>
+                        <textarea 
+                            onchange="saveComment('${zone.id}', this.value)"
+                            placeholder="寫下我們在這裡的心得或一句話吧..." 
+                            class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none h-20"
+                        >${data.comment}</textarea>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // 更新進度條
+            const total = displayZones.length;
+            document.getElementById('progressBar').style.width = `${(completed / total) * 100}%`;
+            document.getElementById('progressText').innerText = `已攻略: ${completed} / ${total} 區`;
+        }
+
+        // --- 互動功能 ---
+        function toggleCheck(id) {
+            if (!records[id]) records[id] = { checked: false, rating: 0, comment: '' };
+            records[id].checked = !records[id].checked;
+            saveData();
+            renderZones();
+        }
+
+        function setRating(id, rating) {
+            if (!records[id]) records[id] = { checked: true, rating: 0, comment: '' };
+            records[id].rating = rating;
+            saveData();
+            renderZones();
+        }
+
+        function saveComment(id, text) {
+            if (!records[id]) records[id] = { checked: true, rating: 0, comment: '' };
+            records[id].comment = text;
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem('expoRecords', JSON.stringify(records));
+        }
+
+        // --- 產出戰報 ---
+        function generateReport() {
+            let report = "【2026 台灣設計展 - 我們的觀展戰報】\n\n";
+            let hasChecked = false;
+            
+            allZones.forEach(z => {
+                const data = records[z.id];
+                if (data && data.checked) {
+                    hasChecked = true;
+                    report += `📍 ${z.name}\n`;
+                    if (data.rating > 0) report += `評分: ${'★'.repeat(data.rating)}\n`;
+                    if (data.comment) report += `心得: ${data.comment}\n`;
+                    report += `\n`;
+                }
+            });
+
+            if (!hasChecked) {
+                alert("還沒有踩點紀錄喔！快去逛逛吧！");
+                return;
+            }
+
+            // 複製到剪貼簿
+            navigator.clipboard.writeText(report).then(() => {
+                alert("✨ 戰報已自動複製！快去貼給朋友或發 IG 限動吧！\n\n預覽：\n" + report);
+            });
+        }
+
+        // 啟動 App
+        init();
+    </script>
+</body>
+</html>
